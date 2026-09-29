@@ -1,0 +1,34 @@
+name: Đồng bộ Notion
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sync-notion
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Đọc Notion và cập nhật notion-data.js
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: node scripts/sync-notion.mjs
+      - name: Commit nếu có thay đổi
+        run: |
+          # bỏ qua khác biệt chỉ ở dòng generatedAt để không commit vô ích mỗi 30 phút
+          if [ -n "$(git diff --ignore-matching-lines='generatedAt' --stat notion-data.js)" ] || ! git ls-files --error-unmatch notion-data.js >/dev/null 2>&1; then
+            git config user.name "notion-sync-bot"
+            git config user.email "notion-sync-bot@users.noreply.github.com"
+            git add notion-data.js
+            git commit -m "Đồng bộ dữ liệu từ Notion"
+            git push
+          else
+            echo "Không có thay đổi để commit"
+          fi

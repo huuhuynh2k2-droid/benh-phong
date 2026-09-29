@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theo Dõi Bệnh Nhân Ở Bệnh Phòng — BS. Huỳnh Hữu Minh</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A5%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f7f8fb;--surface:#ffffff;--ink:#0c1b33;--ink2:#4c5a72;--muted:#8b93a3;
+  --grid:#e7ebf2;--axis:#c9d0dc;--border:rgba(12,27,51,.10);
+  --s1:#12305e;--s1-soft:#a9c1e4;--wash:rgba(12,27,51,.05);
+  --good:#158a4d;--warn:#b8790a;--crit:#c53434;--accent:#12305e;--accent2:#0b1e3d;--onaccent:#fff;--gold:#c9962c;--gold2:#e8b64a;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --bg:#070d1a;--surface:#0f1a30;--ink:#eef1f7;--ink2:#aab4c6;--muted:#7c8598;
+    --grid:#1c2740;--axis:#26314c;--border:rgba(255,255,255,.10);
+    --s1:#5b8ad6;--s1-soft:#27436f;--wash:rgba(255,255,255,.05);
+    --good:#33c27c;--warn:#f0ab3d;--crit:#f07272;--accent:#4d7ec9;--accent2:#7fa6de;--gold:#e8b64a;--gold2:#f4cf7e;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#070d1a;--surface:#0f1a30;--ink:#eef1f7;--ink2:#aab4c6;--muted:#7c8598;
+  --grid:#1c2740;--axis:#26314c;--border:rgba(255,255,255,.10);
+  --s1:#5b8ad6;--s1-soft:#27436f;--wash:rgba(255,255,255,.05);
+  --good:#33c27c;--warn:#f0ab3d;--crit:#f07272;--accent:#4d7ec9;--accent2:#7fa6de;--gold:#e8b64a;--gold2:#f4cf7e;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+h1,h2,.logo b{font-family:"Be Vietnam Pro",system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 48px}
+
+/* ---- hero header ---- */
+.hero{background:linear-gradient(135deg,var(--accent2) 0%,var(--accent) 60%,#1c4a8c 100%);color:#fff;border-radius:0 0 26px 26px;padding:22px 0 30px;margin-bottom:18px;box-shadow:0 2px 0 var(--gold) inset}
+.hero-in{max-width:1180px;margin:0 auto;padding:0 16px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:12px}
+.avatar{position:relative;display:inline-flex;flex:none}
+.avatar-badge{position:absolute;right:-3px;bottom:-3px;background:var(--gold);border:2px solid var(--accent2);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px}
+.logo b{font-size:21px;font-weight:800;display:block;letter-spacing:.2px}
+.logo .byline{font-size:12.5px;color:var(--gold2);font-weight:600;margin-top:1px}
+.hero .tools{display:flex;gap:8px;flex-wrap:wrap}
+.hero .btn{background:rgba(255,255,255,.14);backdrop-filter:blur(2px);border:1px solid rgba(255,255,255,.32);border-radius:10px;padding:7px 13px;cursor:pointer;min-height:36px;text-decoration:none;color:#fff;display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;transition:background .15s}
+.hero .btn:hover{background:rgba(255,255,255,.26)}
+.hero-sub{max-width:1180px;margin:14px auto 0;padding:0 16px;font-size:13.5px;color:rgba(255,255,255,.92)}
+
+h1{font-size:22px;margin:0;font-weight:650}
+.sub{color:var(--ink2);font-size:13px;margin-top:2px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;min-height:34px}
+.btn:hover{background:var(--wash)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}
+.btn.sm{padding:3px 9px;min-height:28px;font-size:13px}
+nav.main{display:flex;gap:4px;border-bottom:1px solid var(--grid);margin:8px 0 16px;overflow-x:auto}
+nav.main button,.subtabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;color:var(--ink2);white-space:nowrap;font-weight:600}
+nav.main button[aria-selected="true"],.subtabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--gold);border-bottom-width:3px}
+.aichips{display:inline-flex;gap:3px;flex-wrap:wrap;vertical-align:middle}
+.aichip{font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;border:1px solid var(--grid);color:var(--muted);background:var(--wash)}
+.aichip.on{background:var(--good);border-color:var(--good);color:#fff}
+.subtabs{display:flex;gap:4px;margin:4px 0 12px;overflow-x:auto;border-bottom:1px solid var(--grid)}
+.subtabs button{padding:8px 12px;font-size:14px}
+.grid{display:grid;gap:12px}
+.tiles{grid-template-columns:repeat(4,1fr)}
+.three{grid-template-columns:repeat(3,1fr)}
+.two{grid-template-columns:1fr 1fr}
+.mt{margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:0;box-shadow:0 1px 2px rgba(12,27,51,.04)}
+.card h2{font-size:15px;margin:0 0 2px;font-weight:650}
+.card .hint{color:var(--ink2);font-size:12.5px;margin-bottom:10px}
+.tile .v{font-size:30px;font-weight:650;line-height:1.15}
+.tile .l{color:var(--ink2);font-size:13px}
+.tile .d{font-size:12.5px;margin-top:4px;color:var(--ink2)}
+.src{cursor:pointer;text-align:left;width:100%;display:block}
+.src:hover{background:var(--wash)}
+.src .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.src .nm{font-weight:650;font-size:15px}
+.src .big{font-size:30px;font-weight:650;line-height:1.2;margin-top:6px}
+.src .big small{font-size:14px;font-weight:400;color:var(--ink2)}
+.meter{height:8px;background:var(--grid);border-radius:0 4px 4px 0;display:flex;gap:2px;overflow:hidden;margin:8px 0}
+.meter span{display:block;height:100%}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;border:1px solid var(--border);border-radius:99px;padding:0 8px;background:var(--wash);color:var(--ink2);white-space:nowrap}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--grid)}
+.list li:first-child{border-top:0}
+.list .t{min-width:0}
+.list .t b{font-weight:550;display:block;overflow:hidden;text-overflow:ellipsis}
+.list .t span{font-size:12.5px;color:var(--ink2)}
+.list .a{display:flex;gap:6px;flex:none}
+.flag{display:inline-flex;gap:4px;align-items:center;font-size:12px;border:1px solid var(--border);border-radius:99px;padding:0 8px;background:var(--wash);white-space:nowrap;font-weight:600}
+.flag i{font-style:normal}
+.late i{color:var(--crit)}.soon i{color:var(--accent)}.due i{color:var(--gold)}
+:root[data-theme="dark"] .due i{color:var(--warn)}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .due i{color:var(--warn)}}
+.empty{color:var(--ink2);font-size:13.5px;padding:8px 0}
+.bar{display:grid;grid-template-columns:130px 1fr 62px;gap:10px;align-items:center;padding:5px 0;font-size:13.5px}
+.bar .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .trk{height:10px;background:var(--grid);border-radius:0 4px 4px 0;display:flex;gap:2px;overflow:hidden}
+.bar .trk span{display:block;height:100%}
+.bar .n{text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:8px}
+.donutwrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.donut text{fill:var(--ink)}
+.months{display:grid;gap:6px;align-items:end;height:150px;border-bottom:1px solid var(--axis);padding-top:8px}
+.months .m{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.months .col{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.months .seg{border-radius:4px 4px 0 0;background:var(--grid);position:relative}
+.months .seg .fill{position:absolute;left:0;right:0;bottom:0;background:var(--s1)}
+.mlab{display:grid;gap:6px;font-size:11.5px;color:var(--ink2);text-align:center;margin-top:4px}
+.mval{font-size:11.5px;color:var(--ink2);text-align:center;font-variant-numeric:tabular-nums}
+/* matrix */
+.mx{width:100%;border-collapse:separate;border-spacing:3px;font-size:13.5px}
+.mx th{font-weight:550;text-align:center;color:var(--ink2);font-size:12.5px;padding:2px 4px}
+.mx th.rl{text-align:left;color:var(--ink)}
+.mx td{text-align:center;border-radius:6px;padding:8px 4px;cursor:pointer;font-variant-numeric:tabular-nums;background:var(--wash)}
+.mx td.z{color:var(--muted);cursor:default;background:transparent}
+.mx td:not(.z):hover{outline:2px solid var(--accent)}
+/* timeline */
+.tl{display:flex;gap:2px;height:14px;margin:6px 0 12px}
+.tl span{display:block;height:100%;background:var(--grid)}
+.tl span.cur{background:var(--s1-soft)}.tl span.done{background:var(--s1)}
+.tl span:first-child{border-radius:4px 0 0 4px}.tl span:last-child{border-radius:0 4px 4px 0}
+.rot{display:grid;grid-template-columns:130px 150px 80px 1fr auto;gap:8px 12px;align-items:center;padding:8px 0;border-top:1px solid var(--grid);font-size:14px}
+.rot:first-of-type{border-top:0}
+.rot .d{color:var(--ink2);font-size:13px}
+/* table */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filters input,.filters select{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-height:34px}
+.filters input[type=search]{flex:1;min-width:180px}
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(12,27,51,.04)}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t thead th{position:sticky;top:0;background:linear-gradient(120deg,var(--accent2),var(--accent));color:#fff;text-align:left;font-weight:700;font-size:12.5px;letter-spacing:.2px;text-transform:uppercase;padding:10px 10px;white-space:nowrap;cursor:pointer;user-select:none}
+table.t tbody td{padding:8px 10px;border-top:1px solid var(--grid);vertical-align:middle}
+table.t tbody tr:hover{background:var(--wash)}
+td.num,th.num{text-align:center}
+td a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+td .nm{font-weight:550}
+td select,td input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 6px;min-height:28px;max-width:100%}
+td input.note{width:100%;min-width:120px}
+td.st select[data-v="2"]{background:rgba(12,163,12,.14)}
+td.st select[data-v="1"]{background:rgba(250,178,25,.18)}
+.dim{color:var(--ink2);font-size:12.5px}
+.count{color:var(--ink2);font-size:13px;margin:0 0 8px}
+.foot{color:var(--ink2);font-size:12.5px;margin-top:20px}
+.banner{background:var(--wash);border:1px dashed var(--axis);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--ink2);margin-bottom:12px}
+.emptybox{padding:28px 16px;text-align:center;color:var(--ink2);font-size:14px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.hide{display:none!important}
+@media (max-width:860px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .two,.three{grid-template-columns:1fr}
+  .rot{grid-template-columns:1fr auto;}
+  .rot .d2{display:none}
+}
+@media (max-width:720px){
+  .bar{grid-template-columns:96px 1fr 52px}
+  table.t thead{display:none}
+  table.t,table.t tbody,table.t tr,table.t td{display:block;width:100%}
+  table.t tbody tr{padding:10px 12px;border-top:1px solid var(--grid);display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+  table.t tbody td{border:0;padding:0}
+  td.nmc,td.notec{grid-column:1/-1}
+  td.hidem{display:none}
+  td[data-l]::before{content:attr(data-l);display:block;font-size:11.5px;color:var(--ink2)}
+}
+
+.aichips{display:inline-flex;gap:3px;flex-wrap:wrap;vertical-align:middle}
+.aichip{font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;border:1px solid var(--grid);color:var(--muted);background:var(--wash)}
+.aichip.on{background:var(--good);border-color:var(--good);color:#fff}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-in">
+    <div class="logo"><div><b>Theo Dõi Bệnh Nhân Ở Bệnh Phòng</b><div class="byline">BS. Huỳnh Hữu Minh · Thực hành lâm sàng</div></div></div>
+    <div class="tools"><button class="btn" id="theme">◐ Sáng / Tối</button><a class="btn" href="../on-thi-dashboard/">📋 Bảng theo dõi ôn thi</a><a class="btn" href="../thu-vien-y-khoa/">📚 Thư viện y khoa</a></div>
+  </div>
+  <div class="hero-sub" id="sub"></div>
+</div>
+<div class="wrap">
+  <div class="grid tiles" id="tiles"></div>
+  <div class="card mt"><h2>Cách hoạt động</h2>
+    <div class="hint">Mỗi ca là 1 dòng trong Notion (CSDL Case bệnh nhân). Gửi thông tin ca cho Claude, Claude điền phân tích vào Notion, trang này tự cập nhật sau lần đồng bộ kế tiếp (mỗi 30 phút). Vì repo công khai nên trang <b>chỉ hiện mã ca, khoa, tình trạng và ca đã có phân tích chưa</b>. Nội dung lâm sàng xem trong Notion: bấm vào mã ca.</div>
+    <div class="dim" style="margin-top:8px">6 ô phân tích: <b>CLS</b> đề nghị cận lâm sàng · <b>ĐT</b> điều trị · <b>?</b> thắc mắc lâm sàng · <b>Nắm</b> kiến thức cần nắm · <b>Sâu</b> kiến thức cần đào sâu · <b>TK</b> tổng kết bài học</div></div>
+  <div class="filters mt">
+    <input type="search" id="q" placeholder="Tìm mã ca...">
+    <select id="kh"></select>
+    <select id="tt"><option value="all">Mọi tình trạng</option><option value="Đang nằm viện">Đang nằm viện</option><option value="Ra viện">Ra viện</option><option value="Chuyển khoa / viện">Chuyển khoa / viện</option><option value="Tử vong">Tử vong</option><option value="none">Chưa ghi tình trạng</option></select>
+    <select id="ai"><option value="all">Mọi mức phân tích</option><option value="miss">Còn thiếu phần phân tích</option><option value="full">Đủ 6 phần</option></select>
+  </div>
+  <p class="count" id="count"></p>
+  <div class="tw"><table class="t">
+    <thead><tr><th>Mã ca</th><th>Khoa</th><th>Ngày gặp</th><th>Tình trạng</th><th>Phân tích AI</th><th>Đào sâu</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table><div class="emptybox hide" id="empty"></div></div>
+</div>
+<script src="notion-data.js"></script>
+<script>
+(function(){
+"use strict";
+var D=window.BENH_PHONG;
+if(!D){document.body.innerHTML='<div style="max-width:560px;margin:60px auto;padding:0 16px;font:15px/1.6 system-ui,sans-serif"><h1 style="font-size:20px">Chưa tải được dữ liệu Notion</h1><p>Không tìm thấy <code>notion-data.js</code> cạnh trang này.</p></div>';return}
+var KHOA=["Ngoại khoa","Nội khoa","Hồi sức","Cấp cứu","Chuyên khoa lẻ","Nhi khoa","Sản khoa","Tiêu hoá (đi thêm)"],AIL=["CLS","ĐT","?","Nắm","Sâu","TK"];
+var pad=function(n){return String(n).padStart(2,"0")},d0=new Date(),TODAY=d0.getFullYear()+"-"+pad(d0.getMonth()+1)+"-"+pad(d0.getDate());
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(s){if(!s)return"–";var p=s.split("-");return p[2]+"/"+p[1]+(p[0]!==TODAY.slice(0,4)?"/"+p[0].slice(2):"")}
+function weekStart(d){var p=d.split("-"),dt=new Date(+p[0],+p[1]-1,+p[2]),w=(dt.getDay()+6)%7,m=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()-w);return m.getFullYear()+"-"+pad(m.getMonth()+1)+"-"+pad(m.getDate())}
+/* cột: [mã ca, khoa, ngày gặp, đáng đào sâu 0/1, id trang, tình trạng, cờ 6 phần "110100"] */
+var cases=(D.cases||[]).map(function(r){return{name:r[0],khoa:r[1],date:r[2],deep:r[3],id:r[4],tt:r[5]||"",ai:r[6]||"000000"}});
+var F={q:"",kh:"all",tt:"all",ai:"all"};
+function cnt(it){return(it.ai.match(/1/g)||[]).length}
+function chips(it){return'<span class="aichips">'+AIL.map(function(l,i){var on=it.ai.charAt(i)==="1";return'<span class="aichip'+(on?" on":"")+'" title="'+esc(l)+(on?": đã có":": chưa có")+'">'+l+'</span>'}).join("")+'</span>'}
+function flag(t){if(t==="Đang nằm viện")return'<span class="flag soon"><i>●</i>Đang nằm viện</span>';if(t==="Ra viện")return'<span class="flag"><i>✓</i>Ra viện</span>';return t?'<span class="flag"><i>○</i>'+esc(t)+'</span>':'<span class="dim">–</span>'}
+function tile(v,l,d){return'<div class="card tile"><div class="v">'+v+'</div><div class="l">'+l+'</div><div class="d">'+d+'</div></div>'}
+function render(){
+  var inp=cases.filter(function(i){return i.tt==="Đang nằm viện"}).length,full=cases.filter(function(i){return cnt(i)===6}).length,deep=cases.filter(function(i){return i.deep}).length,ws=weekStart(TODAY),wk=cases.filter(function(i){return(i.date||"")>=ws}).length;
+  document.getElementById("tiles").innerHTML=tile(cases.length,"Tổng số ca","đã ghi nhận trong Notion")+tile(inp,"Đang nằm viện","cần theo dõi diễn tiến")+tile(full+" / "+cases.length,"Đủ 6 phần phân tích","CLS, điều trị, thắc mắc, nắm, sâu, tổng kết")+tile(deep,"Case đáng đào sâu",wk+" ca mới trong tuần này");
+  var q=F.q.trim().toLowerCase();
+  var list=cases.filter(function(it){
+    if(q&&it.name.toLowerCase().indexOf(q)<0)return false;
+    if(F.kh!=="all"&&it.khoa!==F.kh)return false;
+    if(F.tt==="none"){if(it.tt)return false}else if(F.tt!=="all"&&it.tt!==F.tt)return false;
+    if(F.ai==="miss"&&cnt(it)===6)return false;if(F.ai==="full"&&cnt(it)!==6)return false;return true})
+    .sort(function(a,b){return(a.date||"")<(b.date||"")?1:(a.date||"")>(b.date||"")?-1:0});
+  document.getElementById("count").textContent=list.length+" / "+cases.length+" ca";
+  document.getElementById("tb").innerHTML=list.map(function(it){
+    return'<tr><td class="nmc"><span class="nm"><a href="https://www.notion.so/'+esc(it.id)+'" target="_blank" rel="noopener">'+esc(it.name)+'</a></span></td><td data-l="Khoa">'+esc(it.khoa||"–")+'</td><td data-l="Ngày gặp">'+fmt(it.date)+'</td><td data-l="Tình trạng">'+flag(it.tt)+'</td><td data-l="Phân tích AI">'+chips(it)+' <span class="dim">'+cnt(it)+'/6</span></td><td data-l="Đào sâu">'+(it.deep?'<span class="flag soon"><i>★</i>Đáng đào sâu</span>':'<span class="dim">–</span>')+'</td></tr>'}).join("");
+  var em=document.getElementById("empty");
+  if(!cases.length){em.classList.remove("hide");em.innerHTML='Chưa có ca bệnh nào trong Notion.<br>Gửi thông tin bệnh nhân cho Claude (nên dùng <b>mã ca</b>, không ghi họ tên/số hồ sơ), trang sẽ tự cập nhật ở lần đồng bộ kế tiếp.'}else em.classList.add("hide");
+}
+document.getElementById("kh").innerHTML='<option value="all">Mọi khoa</option>'+KHOA.map(function(k){return'<option>'+k+'</option>'}).join("");
+[["q","q","input"],["kh","kh","change"],["tt","tt","change"],["ai","ai","change"]].forEach(function(a){document.getElementById(a[0]).addEventListener(a[2],function(e){F[a[1]]=e.target.value;render()})});
+var g=D.generatedAt?new Date(D.generatedAt):null;
+document.getElementById("sub").textContent=g?"Đồng bộ Notion lần cuối "+pad(g.getHours())+":"+pad(g.getMinutes())+" "+pad(g.getDate())+"-"+pad(g.getMonth()+1)+". Tự kiểm tra Notion mỗi 30 phút.":"";
+document.getElementById("theme").addEventListener("click",function(){var r=document.documentElement,dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme:dark)").matches);r.setAttribute("data-theme",dark?"light":"dark")});
+render();
+})();
+</script>
+</body>
+</html>
