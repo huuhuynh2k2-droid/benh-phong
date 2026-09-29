@@ -330,14 +330,16 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&CUR)closePa
 var hasEnc=cases.some(function(c){return c.enc});
 var ub=document.getElementById("unlock"),um=document.getElementById("lockmsg");
 if(!hasEnc){ub.classList.add("hide");um.textContent="Chưa có dữ liệu mã hoá (cần đặt secret BENH_PHONG_KEY cho repo, xem README)."}
-function done(){ub.textContent="🔒 Khoá lại";um.textContent="Đã mở khoá. Chỉ tồn tại trong tab này.";try{sessionStorage.setItem("bp_pw",PW)}catch(e){}render()}
+function done(){ub.textContent="🔒 Khoá lại";um.textContent="Đã mở khoá và nhớ trên thiết bị này (bấm Khoá lại để quên).";try{localStorage.setItem("bp_pw",PW)}catch(e){}render()}
 var PW="";
-function lockAgain(){if(CUR)closePanel();KEY=null;PW="";cases.forEach(function(c){c.sec=null});try{sessionStorage.removeItem("bp_pw")}catch(e){}ub.textContent="🔓 Mở khoá";um.textContent="";render()}
+function lockAgain(){if(CUR)closePanel();KEY=null;PW="";cases.forEach(function(c){c.sec=null});try{localStorage.removeItem("bp_pw")}catch(e){}ub.textContent="🔓 Mở khoá";um.textContent="";render()}
 ub.addEventListener("click",function(){
   if(KEY){lockAgain();return}
   var pw=window.prompt("Nhập mật khẩu để xem tên bệnh nhân, chẩn đoán, chuyên đề:");if(!pw)return;
   tryUnlock(pw).then(function(){PW=pw;done()},function(err){um.textContent=err&&err.message==="nosubtle"?"Trình duyệt cần HTTPS để giải mã.":err&&err.message==="nodata"?"Chưa có dữ liệu mã hoá.":"Sai mật khẩu."})});
-try{var sp=sessionStorage.getItem("bp_pw");if(sp&&hasEnc)tryUnlock(sp).then(function(){PW=sp;done()},function(){})}catch(e){}
+/* tự mở khoá: (1) link có #k=mật-khẩu (dấu # không gửi lên máy chủ), (2) mật khẩu đã nhớ trên thiết bị */
+(function(){var sp="";try{var m=/^#k=(.+)$/.exec(location.hash||"");if(m){sp=decodeURIComponent(m[1]);history.replaceState(null,"",location.pathname+location.search)}else sp=localStorage.getItem("bp_pw")||""}catch(e){}
+if(sp&&hasEnc)tryUnlock(sp).then(function(){PW=sp;done()},function(){try{localStorage.removeItem("bp_pw")}catch(e){}})})();
 render();
 })();
 </script>
