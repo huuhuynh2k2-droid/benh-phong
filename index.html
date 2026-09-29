@@ -176,6 +176,32 @@ td.st select[data-v="1"]{background:rgba(250,178,25,.18)}
 .aichip{font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;border:1px solid var(--grid);color:var(--muted);background:var(--wash)}
 .aichip.on{background:var(--good);border-color:var(--good);color:#fff}
 .hide{display:none!important}
+button.aichip{font-family:inherit;line-height:1.4}
+button.aichip.on{cursor:pointer}
+button.aichip.on:hover{filter:brightness(1.12);box-shadow:0 0 0 2px var(--gold)}
+button.aichip:not(.on){cursor:default}
+.modal{position:fixed;inset:0;background:rgba(7,13,26,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto}
+.sheet{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:1180px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.sh-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--grid);background:linear-gradient(120deg,var(--accent2),var(--accent));color:#fff;border-radius:16px 16px 0 0}
+.sh-head b{font-size:16px}
+.sh-head .btn{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.35);color:#fff}
+.sh-tabs{display:flex;gap:6px;padding:10px 18px 0;flex-wrap:wrap}
+.sh-tabs button{border:1px solid var(--border);background:var(--wash);border-radius:99px;padding:3px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.sh-tabs button.cur{background:var(--accent);color:var(--onaccent);border-color:var(--accent)}
+.sh-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 18px 18px}
+.sh-body.one{grid-template-columns:1fr}
+.pane{min-width:0;border:1px solid var(--border);border-radius:12px;padding:12px 14px;max-height:72vh;overflow:auto}
+.pane h3{margin:0 0 8px;font-size:13px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink2)}
+.pane p{margin:6px 0;font-size:14px}
+.pane .li{margin:3px 0;font-size:14px;display:flex;gap:6px}
+.pane .li i{font-style:normal;color:var(--muted);flex:none;min-width:14px}
+.pane .hd{margin:12px 0 4px;font-weight:700;font-size:14px}
+.rtw{overflow:auto;margin:6px 0}
+table.rt{border-collapse:collapse;font-size:13.5px;width:100%}
+table.rt td,table.rt th{border:1px solid var(--grid);padding:5px 9px;text-align:left;font-variant-numeric:tabular-nums}
+table.rt th{background:var(--wash);font-weight:700;position:sticky;top:0}
+table.rt td:first-child{font-weight:600;white-space:nowrap}
+@media (max-width:860px){.sh-body{grid-template-columns:1fr}.pane{max-height:none}}
 .lockrow{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .lock{color:var(--muted)}
 .dx{cursor:pointer;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:280px;font-size:13.5px}
@@ -199,7 +225,7 @@ td.st select[data-v="1"]{background:rgba(250,178,25,.18)}
   <div class="card mt"><h2>Cách hoạt động</h2>
     <div class="hint">Mỗi ca là 1 dòng trong Notion (CSDL Case bệnh nhân). Gửi thông tin ca cho Claude, Claude điền vào Notion, trang này tự cập nhật sau lần đồng bộ kế tiếp (mỗi 30 phút). Vì repo công khai nên <b>tên bệnh nhân, chẩn đoán và chuyên đề đào sâu được mã hoá</b>: bấm <b>🔓 Mở khoá</b> và nhập mật khẩu (chỉ xử lý trong trình duyệt của bạn, không gửi đi đâu). Nội dung lâm sàng đầy đủ xem trong Notion: bấm vào mã ca.</div>
     <div class="lockrow"><button class="btn primary" id="unlock">🔓 Mở khoá</button><span class="dim" id="lockmsg"></span></div>
-    <div class="dim" style="margin-top:8px">6 ô phân tích: <b>CLS</b> đề nghị cận lâm sàng · <b>ĐT</b> điều trị · <b>?</b> thắc mắc lâm sàng · <b>Nắm</b> kiến thức cần nắm · <b>Sâu</b> kiến thức cần đào sâu · <b>TK</b> tổng kết bài học</div></div>
+    <div class="dim" style="margin-top:8px">Bấm vào ô xanh để mở khung xem (CLS và ĐT hiện kết quả theo ngày bên trái, phân tích AI bên phải). 6 ô phân tích: <b>CLS</b> đề nghị cận lâm sàng · <b>ĐT</b> điều trị · <b>?</b> thắc mắc lâm sàng · <b>Nắm</b> kiến thức cần nắm · <b>Sâu</b> kiến thức cần đào sâu · <b>TK</b> tổng kết bài học</div></div>
   <div class="filters mt">
     <input type="search" id="q" placeholder="Tìm mã ca, tên, chẩn đoán...">
     <select id="kh"></select>
@@ -212,6 +238,7 @@ td.st select[data-v="1"]{background:rgba(250,178,25,.18)}
     <tbody id="tb"></tbody>
   </table><div class="emptybox hide" id="empty"></div></div>
 </div>
+<div class="modal hide" id="modal"><div class="sheet" role="dialog" aria-modal="true"><div class="sh-head"><b id="mt"></b><button class="btn sm" id="mclose" type="button">✕ Đóng</button></div><div class="sh-tabs" id="mtabs"></div><div class="sh-body" id="mbody"></div></div></div>
 <script src="notion-data.js"></script>
 <script>
 (function(){
@@ -239,7 +266,36 @@ function tryUnlock(pw){
 }
 var F={q:"",kh:"all",tt:"all",ai:"all"};
 function cnt(it){return(it.ai.match(/1/g)||[]).length}
-function chips(it){return'<span class="aichips">'+AIL.map(function(l,i){var on=it.ai.charAt(i)==="1";return'<span class="aichip'+(on?" on":"")+'" title="'+esc(l)+(on?": đã có":": chưa có")+'">'+l+'</span>'}).join("")+'</span>'}
+function chips(it,ci){return'<span class="aichips">'+AIL.map(function(l,i){var on=it.ai.charAt(i)==="1";return'<button type="button" class="aichip'+(on?" on":"")+'"'+(on?' data-c="'+ci+'" data-i="'+i+'"':' disabled')+' title="'+esc(AIN[i])+(on?": đã có, bấm để xem":": chưa có")+'">'+l+'</button>'}).join("")+'</span>'}
+var AIN=["Đề nghị CLS","Điều trị","Thắc mắc lâm sàng","Kiến thức cần nắm","Kiến thức cần đào sâu","Tổng kết - bài học"];
+/* ô nào mở khung nào: [tiêu đề toggle bên trái (kết quả) hoặc "", tên bên trái, tiêu đề toggle phân tích] */
+var VIEW=[["CLS","Kết quả CLS theo diễn tiến từng ngày","Phân tích đề nghị CLS (AI)"],["Điều trị","Y lệnh điều trị theo ngày","Phân tích điều trị (AI)"],["","","Thắc mắc lâm sàng"],["","","Kiến thức cần nắm"],["","","Kiến thức cần đào sâu"],["","","Tổng kết - bài học rút ra"]];
+function inl(x){return esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}
+function blocksHtml(bl){
+  if(!bl||!bl.length)return'<p class="dim">Chưa có nội dung.</p>';
+  var h="",cnt={},prev="";
+  bl.forEach(function(b){
+    if(b.k==="t"){var r=b.r||[];h+='<div class="rtw"><table class="rt">'+r.map(function(row,ri){var th=b.h&&ri===0;return"<tr>"+row.map(function(c){return(th?"<th>":"<td>")+inl(c)+(th?"</th>":"</td>")}).join("")+"</tr>"}).join("")+"</table></div>";prev="t";return}
+    var d=b.d||0;
+    if(b.k==="n"){cnt[d]=(prev==="n"?cnt[d]||0:0)+1;h+='<div class="li" style="margin-left:'+d*16+'px"><i>'+cnt[d]+'.</i><span>'+inl(b.x)+'</span></div>'}
+    else if(b.k==="b")h+='<div class="li" style="margin-left:'+d*16+'px"><i>•</i><span>'+inl(b.x)+'</span></div>';
+    else if(b.k==="h")h+='<div class="hd">'+inl(b.x)+'</div>';
+    else h+='<p>'+inl(b.x)+'</p>';
+    prev=b.k});
+  return h}
+var CUR=null;
+function openPanel(ci,i){
+  var it=cases[ci];if(!it)return;
+  if(!it.sec){document.getElementById("lockmsg").textContent="Bấm 🔓 Mở khoá để xem nội dung phân tích.";window.scrollTo({top:0,behavior:"smooth"});return}
+  CUR={ci:ci,i:i};showPanel()}
+function showPanel(){
+  var it=cases[CUR.ci],v=VIEW[CUR.i],S=it.sec.s||{},two=!!v[0],m=document.getElementById("modal");
+  document.getElementById("mt").textContent=it.name+(it.sec.n?" · "+it.sec.n:"");
+  document.getElementById("mtabs").innerHTML=AIL.map(function(l,k){var on=it.ai.charAt(k)==="1";return on?'<button type="button" data-k="'+k+'" class="'+(k===CUR.i?"cur":"")+'">'+esc(AIN[k])+'</button>':""}).join("");
+  var body=document.getElementById("mbody");body.className="sh-body"+(two?"":" one");
+  body.innerHTML=(two?'<div class="pane"><h3>'+esc(v[1])+'</h3>'+blocksHtml(S[v[0]])+'</div>':"")+'<div class="pane"><h3>'+(two?"Phân tích AI":esc(AIN[CUR.i]))+'</h3>'+blocksHtml(S[v[2]])+'</div>';
+  m.classList.remove("hide");document.body.style.overflow="hidden"}
+function closePanel(){document.getElementById("modal").classList.add("hide");document.body.style.overflow="";CUR=null}
 function flag(t){if(t==="Đang nằm viện")return'<span class="flag soon"><i>●</i>Đang nằm viện</span>';if(t==="Ra viện")return'<span class="flag"><i>✓</i>Ra viện</span>';return t?'<span class="flag"><i>○</i>'+esc(t)+'</span>':'<span class="dim">–</span>'}
 function tile(v,l,d){return'<div class="card tile"><div class="v">'+v+'</div><div class="l">'+l+'</div><div class="d">'+d+'</div></div>'}
 function render(){
@@ -258,7 +314,7 @@ function render(){
       nm=s?(s.n?esc(s.n):'<span class="dim">–</span>'):L,
       dx=s?(s.d?'<div class="dx" title="Bấm để xem đầy đủ">'+esc(s.d)+'</div>':'<span class="dim">–</span>'):L,
       cd=s?(s.c.length?'<div class="cd">'+s.c.map(function(c){return'<a href="https://www.notion.so/'+esc(c[1])+'" target="_blank" rel="noopener">'+esc(c[0])+'</a>'}).join("")+'</div>':'<span class="dim">–</span>'):L;
-    return'<tr><td class="nmc"><span class="nm"><a href="https://www.notion.so/'+esc(it.id)+'" target="_blank" rel="noopener">'+esc(it.name)+'</a></span>'+(it.deep?' <span title="Case đáng đào sâu" style="color:var(--gold)">★</span>':'')+'</td><td data-l="Tên bệnh nhân">'+nm+'</td><td data-l="Chẩn đoán">'+dx+'</td><td data-l="Khoa">'+esc(it.khoa||"–")+'</td><td data-l="Ngày gặp">'+fmt(it.date)+'</td><td data-l="Tình trạng">'+flag(it.tt)+'</td><td data-l="Vấn đề cần đào sâu">'+cd+'</td><td data-l="Phân tích AI">'+chips(it)+' <span class="dim">'+cnt(it)+'/6</span></td></tr>'}).join("");
+    return'<tr><td class="nmc"><span class="nm"><a href="https://www.notion.so/'+esc(it.id)+'" target="_blank" rel="noopener">'+esc(it.name)+'</a></span>'+(it.deep?' <span title="Case đáng đào sâu" style="color:var(--gold)">★</span>':'')+'</td><td data-l="Tên bệnh nhân">'+nm+'</td><td data-l="Chẩn đoán">'+dx+'</td><td data-l="Khoa">'+esc(it.khoa||"–")+'</td><td data-l="Ngày gặp">'+fmt(it.date)+'</td><td data-l="Tình trạng">'+flag(it.tt)+'</td><td data-l="Vấn đề cần đào sâu">'+cd+'</td><td data-l="Phân tích AI">'+chips(it,cases.indexOf(it))+' <span class="dim">'+cnt(it)+'/6</span></td></tr>'}).join("");
   var em=document.getElementById("empty");
   if(!cases.length){em.classList.remove("hide");em.innerHTML='Chưa có ca bệnh nào trong Notion.<br>Gửi thông tin bệnh nhân cho Claude (nên dùng <b>mã ca</b>, không ghi họ tên/số hồ sơ), trang sẽ tự cập nhật ở lần đồng bộ kế tiếp.'}else em.classList.add("hide");
 }
@@ -267,13 +323,16 @@ document.getElementById("kh").innerHTML='<option value="all">Mọi khoa</option>
 var g=D.generatedAt?new Date(D.generatedAt):null;
 document.getElementById("sub").textContent=g?"Đồng bộ Notion lần cuối "+pad(g.getHours())+":"+pad(g.getMinutes())+" "+pad(g.getDate())+"-"+pad(g.getMonth()+1)+". Tự kiểm tra Notion mỗi 30 phút.":"";
 document.getElementById("theme").addEventListener("click",function(){var r=document.documentElement,dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme:dark)").matches);r.setAttribute("data-theme",dark?"light":"dark")});
-document.getElementById("tb").addEventListener("click",function(e){var t=e.target;if(t.classList&&t.classList.contains("dx"))t.classList.toggle("open")});
+document.getElementById("tb").addEventListener("click",function(e){var t=e.target;if(t.classList&&t.classList.contains("dx"))t.classList.toggle("open");var c=t.closest&&t.closest("button.aichip.on");if(c)openPanel(+c.getAttribute("data-c"),+c.getAttribute("data-i"))});
+document.getElementById("mclose").addEventListener("click",closePanel);
+document.getElementById("modal").addEventListener("click",function(e){if(e.target.id==="modal")closePanel();var b=e.target.closest&&e.target.closest("#mtabs button");if(b&&CUR){CUR.i=+b.getAttribute("data-k");showPanel()}});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&CUR)closePanel()});
 var hasEnc=cases.some(function(c){return c.enc});
 var ub=document.getElementById("unlock"),um=document.getElementById("lockmsg");
 if(!hasEnc){ub.classList.add("hide");um.textContent="Chưa có dữ liệu mã hoá (cần đặt secret BENH_PHONG_KEY cho repo, xem README)."}
 function done(){ub.textContent="🔒 Khoá lại";um.textContent="Đã mở khoá. Chỉ tồn tại trong tab này.";try{sessionStorage.setItem("bp_pw",PW)}catch(e){}render()}
 var PW="";
-function lockAgain(){KEY=null;PW="";cases.forEach(function(c){c.sec=null});try{sessionStorage.removeItem("bp_pw")}catch(e){}ub.textContent="🔓 Mở khoá";um.textContent="";render()}
+function lockAgain(){if(CUR)closePanel();KEY=null;PW="";cases.forEach(function(c){c.sec=null});try{sessionStorage.removeItem("bp_pw")}catch(e){}ub.textContent="🔓 Mở khoá";um.textContent="";render()}
 ub.addEventListener("click",function(){
   if(KEY){lockAgain();return}
   var pw=window.prompt("Nhập mật khẩu để xem tên bệnh nhân, chẩn đoán, chuyên đề:");if(!pw)return;

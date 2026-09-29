@@ -34,14 +34,48 @@ export function flagsFromBlocks(blocks) {
   return SECTIONS.map((s) => (on.has(nfc(s)) ? "1" : "0")).join("");
 }
 
+// Các toggle được đưa lên web (mã hoá) để xem trong khung 2 cột: kết quả theo ngày | phân tích AI
+export const VIEW_SECTIONS = ["CLS", "Điều trị", ...SECTIONS];
+const rich = (rt) => (rt || []).map((t) => (t.annotations?.bold && t.plain_text.trim() ? "**" + t.plain_text.trim() + "**" : t.plain_text)).join("").trim();
+// Rút gọn block Notion -> [{k:"p|b|n|h|t", x, d, r, h}] (không kèm định danh nào ngoài nội dung người dùng đã viết)
+export async function simplify(blocks, getChildren, d = 0) {
+  const out = [];
+  for (const b of blocks || []) {
+    const t = b.type, v = b[t] || {};
+    const kids = b.has_children ? await getChildren(b.id) : [];
+    if (t === "table") {
+      const rows = [];
+      for (const r of kids) rows.push((r.table_row?.cells || []).map((c) => rich(c)));
+      out.push({ k: "t", h: !!v.has_column_header, r: rows });
+      continue;
+    }
+    const x = rich(v.rich_text);
+    if (t === "paragraph" || t === "quote" || t === "callout") { if (x) out.push({ k: "p", x, d }); }
+    else if (t === "bulleted_list_item" || t === "to_do") out.push({ k: "b", x, d });
+    else if (t === "numbered_list_item") out.push({ k: "n", x, d });
+    else if (t.startsWith("heading_") || t === "toggle") { if (x) out.push({ k: "h", x, d }); }
+    if (kids.length && !["table", "column_list"].includes(t)) out.push(...(await simplify(kids, getChildren, d + 1)));
+  }
+  return out;
+}
+export async function sectionsFromBlocks(blocks, getChildren) {
+  const res = {};
+  for (const b of blocks || []) {
+    if (b.type !== "heading_1" || !b.heading_1?.is_toggleable || !b.has_children) continue;
+    const name = nfc(plain(b.heading_1.rich_text)), hit = VIEW_SECTIONS.find((n) => nfc(n) === name);
+    if (hit) res[hit] = await simplify(await getChildren(b.id), getChildren);
+  }
+  return res;
+}
+
 // chuyên đề: Map<id32hex, tiêu đề>
-export function rowCase(page, flags, cdTitles = new Map()) {
+export function rowCase(page, flags, cdTitles = new Map(), sections = {}) {
   const m = new Map(Object.entries(page.properties || {}).map(([k, v]) => [nfc(k), v]));
   const text = (n) => plain(m.get(nfc(n))?.rich_text);
   const name = plain((m.get(nfc("Tên ca / Mã ca")) ?? [...m.values()].find((v) => v?.type === "title"))?.title);
   if (!name) return null;
   const rel = (m.get(nfc("Chuyên đề đào sâu từ case"))?.relation || []).map((r) => hex(r.id));
-  const secret = { n: text("Tên bệnh nhân"), d: text("Chẩn đoán chính"), c: rel.map((id) => [cdTitles.get(id) || "(chuyên đề)", id]) };
+  const secret = { n: text("Tên bệnh nhân"), d: text("Chẩn đoán chính"), c: rel.map((id) => [cdTitles.get(id) || "(chuyên đề)", id]), s: sections };
   return {
     row: [name, m.get(nfc("Khoa"))?.select?.name || "", (m.get(nfc("Ngày gặp"))?.date?.start || "").slice(0, 10),
       m.get(nfc("Case đáng đào sâu"))?.checkbox ? 1 : 0, hex(page.id), m.get(nfc("Tình trạng"))?.select?.name || "", flags || "000000"],
@@ -94,9 +128,13 @@ export async function main() {
   for (const page of await fetchDb(SRC)) {
     const hasName = Object.values(page.properties || {}).some((v) => v?.type === "title" && plain(v.title));
     if (!hasName) continue;
-    let flags = "000000";
-    try { flags = flagsFromBlocks(await blocksOf(page.id)); } catch (e) { console.warn("  Không đọc được nội dung trang: " + e.message); }
-    const r = rowCase(page, flags, titles);
+    let flags = "000000", sections = {};
+    try {
+      const top = await blocksOf(page.id);
+      flags = flagsFromBlocks(top);
+      if (key) sections = await sectionsFromBlocks(top, blocksOf);
+    } catch (e) { console.warn("  Không đọc được nội dung trang: " + e.message); }
+    const r = rowCase(page, flags, titles, sections);
     if (r) rows.push([...r.row, key ? encrypt(key, r.secret) : ""]);
   }
   rows.sort((a, b) => b[2].localeCompare(a[2]) || a[0].localeCompare(b[0]));

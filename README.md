@@ -24,3 +24,7 @@ Thiết lập một lần: GitHub → repo → Settings → Secrets and variable
 ## Bố cục trang ca trong Notion
 
 Thuộc tính chỉ giữ ý chính: Mã ca, Tên bệnh nhân, Khoa, Ngày gặp, Tình trạng, Chẩn đoán chính, Trạng thái, Chuyên đề đào sâu. Nội dung dài nằm trong thân trang dưới dạng **Toggle heading 1**. Ô "Phân tích AI" trên trang này được tính theo 6 toggle: Phân tích đề nghị CLS (AI), Phân tích điều trị (AI), Thắc mắc lâm sàng, Kiến thức cần nắm, Kiến thức cần đào sâu, Tổng kết - bài học rút ra. Toggle có nội dung bên trong thì tính là "đã có".
+
+## Khung xem phân tích
+
+Bấm ô xanh trong cột "Phân tích AI" (sau khi Mở khoá): CLS và ĐT hiện **kết quả/y lệnh theo ngày ở bên trái, phân tích AI ở bên phải**; các ô còn lại hiện một khung. Nội dung lấy từ toggle heading 1 tương ứng (CLS, Điều trị, 6 phần phân tích) và được mã hoá cùng tên/chẩn đoán. Trong Notion, bảng và gạch đầu dòng trong toggle được hiển thị đúng dạng trên web.
