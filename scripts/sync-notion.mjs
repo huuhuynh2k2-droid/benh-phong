@@ -1,30 +1,17 @@
 // Đồng bộ Notion -> notion-data.js cho trang "Theo dõi bệnh nhân ở bệnh phòng" (Node 18+, không cần thư viện)
-// Công khai (không mã hoá): mã ca, khoa, ngày gặp, tình trạng, cờ 0/1 phần phân tích đã có.
-// Mã hoá AES-256-GCM bằng mật khẩu BENH_PHONG_KEY: tên bệnh nhân, chẩn đoán, chuyên đề cần đào sâu.
-// Không có BENH_PHONG_KEY thì các trường nhạy cảm KHÔNG được xuất ra (trang hiện ổ khoá).
+// Repo công khai: KHÔNG bao giờ xuất "Tên bệnh nhân" (chỉ nằm trong Notion).
+// Xuất: mã ca, khoa, ngày gặp, tình trạng, cờ phân tích, chẩn đoán chính, chuyên đề đào sâu, nội dung các toggle (CLS, điều trị, 6 phần phân tích).
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { pbkdf2Sync, createCipheriv, createHmac } from "node:crypto";
 
 const OUT = process.env.NOTION_DATA_OUT || fileURLToPath(new URL("../notion-data.js", import.meta.url));
 const SRC = { ds: "b0f0ab4c-fb0b-4377-98ca-c3013b949f06", db: "67ea9d8556814c17a0ca8da9b32ecabb" };
 const CD = { ds: "ac6f5ebb-66e2-46de-bf17-350b9645c30a", db: "f6d9e3ad00644e739d82987fcbc2df6c" };
-export const SALT = "benh-phong/v1", ITER = 200000;
 // 6 phần phân tích = tiêu đề Toggle heading 1 trong thân trang (có nội dung bên trong thì tính là "đã có")
 export const SECTIONS = ["Phân tích đề nghị CLS (AI)", "Phân tích điều trị (AI)", "Thắc mắc lâm sàng", "Kiến thức cần nắm", "Kiến thức cần đào sâu", "Tổng kết - bài học rút ra"];
 const nfc = (s) => String(s).normalize("NFC");
 const plain = (a) => (a || []).map((t) => t.plain_text).join("").trim();
 const hex = (id) => String(id || "").replace(/-/g, "").toLowerCase();
-
-export function deriveKey(password) { return pbkdf2Sync(password, SALT, ITER, 32, "sha256"); }
-// IV xác định (HMAC của nội dung) => cùng nội dung ra cùng bản mã, không sinh commit thừa, không lặp IV cho nội dung khác nhau
-export function encrypt(key, obj) {
-  const pt = Buffer.from(JSON.stringify(obj), "utf8");
-  const iv = createHmac("sha256", key).update(pt).digest().subarray(0, 12);
-  const c = createCipheriv("aes-256-gcm", key, iv);
-  const ct = Buffer.concat([c.update(pt), c.final()]);
-  return Buffer.concat([iv, ct, c.getAuthTag()]).toString("base64");
-}
 
 export function flagsFromBlocks(blocks) {
   const on = new Set();
@@ -75,7 +62,7 @@ export function rowCase(page, flags, cdTitles = new Map(), sections = {}) {
   const name = plain((m.get(nfc("Tên ca / Mã ca")) ?? [...m.values()].find((v) => v?.type === "title"))?.title);
   if (!name) return null;
   const rel = (m.get(nfc("Chuyên đề đào sâu từ case"))?.relation || []).map((r) => hex(r.id));
-  const secret = { n: text("Tên bệnh nhân"), d: text("Chẩn đoán chính"), c: rel.map((id) => [cdTitles.get(id) || "(chuyên đề)", id]), s: sections };
+  const secret = { d: text("Chẩn đoán chính"), c: rel.map((id) => [cdTitles.get(id) || "(chuyên đề)", id]), s: sections };
   return {
     row: [name, m.get(nfc("Khoa"))?.select?.name || "", (m.get(nfc("Ngày gặp"))?.date?.start || "").slice(0, 10),
       m.get(nfc("Case đáng đào sâu"))?.checkbox ? 1 : 0, hex(page.id), m.get(nfc("Tình trạng"))?.select?.name || "", flags || "000000"],
@@ -107,16 +94,13 @@ async function blocksOf(id) {
   return out;
 }
 
-export function render(cases, at, extra = {}) {
-  const head = `// TỰ ĐỘNG SINH bởi scripts/sync-notion.mjs - đừng sửa tay.\n// cases: [mã ca, khoa, ngày gặp, đáng đào sâu 0/1, id trang Notion, tình trạng, cờ 6 phần phân tích, bản mã (tên BN, chẩn đoán, chuyên đề) hoặc ""]\n`;
-  return head + `window.BENH_PHONG = {\n  generatedAt: ${JSON.stringify(at)},\n  salt: ${JSON.stringify(SALT)}, iter: ${ITER},\n  verify: ${JSON.stringify(extra.verify || "")},\n  cases: [\n${cases.map((r) => "    " + JSON.stringify(r)).join(",\n")}\n  ]\n};\n`;
+export function render(cases, at) {
+  const head = `// TỰ ĐỘNG SINH bởi scripts/sync-notion.mjs - đừng sửa tay.\n// cases: [mã ca, khoa, ngày gặp, đáng đào sâu 0/1, id trang Notion, tình trạng, cờ 6 phần phân tích, {d: chẩn đoán, c: chuyên đề [[tên,id]], s: nội dung các toggle}]\n`;
+  return head + `window.BENH_PHONG = {\n  generatedAt: ${JSON.stringify(at)},\n  cases: [\n${cases.map((r) => "    " + JSON.stringify(r)).join(",\n")}\n  ]\n};\n`;
 }
 
 export async function main() {
   if (!process.env.NOTION_TOKEN) throw new Error("Thiếu NOTION_TOKEN");
-  const pw = process.env.BENH_PHONG_KEY;
-  const key = pw ? deriveKey(pw) : null;
-  if (!key) console.warn("  Chưa có BENH_PHONG_KEY: không xuất tên BN/chẩn đoán/chuyên đề");
   const titles = new Map();
   try {
     for (const p of await fetchDb(CD)) {
@@ -132,13 +116,13 @@ export async function main() {
     try {
       const top = await blocksOf(page.id);
       flags = flagsFromBlocks(top);
-      if (key) sections = await sectionsFromBlocks(top, blocksOf);
+      sections = await sectionsFromBlocks(top, blocksOf);
     } catch (e) { console.warn("  Không đọc được nội dung trang: " + e.message); }
     const r = rowCase(page, flags, titles, sections);
-    if (r) rows.push([...r.row, key ? encrypt(key, r.secret) : ""]);
+    if (r) rows.push([...r.row, r.secret]);
   }
   rows.sort((a, b) => b[2].localeCompare(a[2]) || a[0].localeCompare(b[0]));
   console.log(`  ${rows.length} ca`);
-  writeFileSync(OUT, render(rows, new Date().toISOString(), { verify: key ? encrypt(key, { ok: 1 }) : "" }));
+  writeFileSync(OUT, render(rows, new Date().toISOString()));
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) main().catch((e) => { console.error(e.message); process.exit(1); });

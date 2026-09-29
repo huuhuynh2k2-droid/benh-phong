@@ -11,15 +11,9 @@ Cài đặt: Settings → Secrets → Actions → `NOTION_TOKEN` (dùng lại to
 
 **Quyền riêng tư:** repo công khai, chỉ đồng bộ mã ca, khoa, ngày gặp, tình trạng và cờ đã điền phần phân tích. Không đưa họ tên, tuổi, giường, bệnh sử, CLS hay nội dung phân tích vào đây.
 
-## Tên bệnh nhân, chẩn đoán, chuyên đề đào sâu (mã hoá)
+## Quyền riêng tư
 
-Repo và trang này công khai, nên 3 trường nhạy cảm được **mã hoá AES-256-GCM** trước khi ghi vào `notion-data.js`; người ngoài chỉ thấy chuỗi ký tự vô nghĩa. Bạn bấm **🔓 Mở khoá** trên trang, nhập mật khẩu, trình duyệt tự giải mã (không gửi mật khẩu đi đâu).
-
-Thiết lập một lần: GitHub → repo → Settings → Secrets and variables → Actions → New repository secret, tên `BENH_PHONG_KEY`, giá trị là mật khẩu bạn chọn (dài, khó đoán). Sau đó Actions → "Đồng bộ Notion" → Run workflow.
-
-- Chưa đặt `BENH_PHONG_KEY`: các trường này **không được xuất ra**, trang hiện ổ khoá 🔒.
-- Đổi mật khẩu: đổi secret rồi chạy lại workflow. Mất mật khẩu thì đặt cái mới, không khôi phục được bản mã cũ.
-- Mã hoá không thay thế được việc giữ bí mật: mật khẩu yếu có thể bị dò. Lịch sử git vẫn giữ các bản mã cũ.
+Repo và trang này công khai. **Tên bệnh nhân không bao giờ được đồng bộ** (chỉ nằm trong Notion). Trang hiện mã ca, chẩn đoán, chuyên đề đào sâu và nội dung các toggle phân tích, nên tuyệt đối không viết họ tên, số hồ sơ, giường, số điện thoại, địa chỉ vào chẩn đoán hay trong thân trang Notion.
 
 ## Bố cục trang ca trong Notion
 
@@ -27,4 +21,4 @@ Thuộc tính chỉ giữ ý chính: Mã ca, Tên bệnh nhân, Khoa, Ngày gặ
 
 ## Khung xem phân tích
 
-Bấm ô xanh trong cột "Phân tích AI" (sau khi Mở khoá): CLS và ĐT hiện **kết quả/y lệnh theo ngày ở bên trái, phân tích AI ở bên phải**; các ô còn lại hiện một khung. Nội dung lấy từ toggle heading 1 tương ứng (CLS, Điều trị, 6 phần phân tích) và được mã hoá cùng tên/chẩn đoán. Trong Notion, bảng và gạch đầu dòng trong toggle được hiển thị đúng dạng trên web.
+Bấm ô xanh trong cột "Phân tích AI" : CLS và ĐT hiện **kết quả/y lệnh theo ngày ở bên trái, phân tích AI ở bên phải**; các ô còn lại hiện một khung. Nội dung lấy từ toggle heading 1 tương ứng (CLS, Điều trị, 6 phần phân tích). Trong Notion, bảng và gạch đầu dòng trong toggle được hiển thị đúng dạng trên web.

@@ -19,7 +19,6 @@ jobs:
       - name: Đọc Notion và cập nhật notion-data.js
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          BENH_PHONG_KEY: ${{ secrets.BENH_PHONG_KEY }}
         run: node scripts/sync-notion.mjs
       - name: Commit nếu có thay đổi
         run: |
