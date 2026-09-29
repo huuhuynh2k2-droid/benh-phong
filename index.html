@@ -176,6 +176,14 @@ td.st select[data-v="1"]{background:rgba(250,178,25,.18)}
 .aichip{font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;border:1px solid var(--grid);color:var(--muted);background:var(--wash)}
 .aichip.on{background:var(--good);border-color:var(--good);color:#fff}
 .hide{display:none!important}
+.lockrow{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.lock{color:var(--muted)}
+.dx{cursor:pointer;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:280px;font-size:13.5px}
+.dx.open{-webkit-line-clamp:unset;display:block}
+.cd{display:flex;flex-direction:column;gap:3px;max-width:260px}
+.cd a{font-size:13px;text-decoration:none;border:1px solid var(--border);background:var(--wash);border-radius:8px;padding:1px 8px;color:var(--accent)}
+.cd a:hover{text-decoration:underline}
+@media (max-width:720px){.dx,.cd{max-width:none}}
 </style>
 </head>
 <body>
@@ -189,17 +197,18 @@ td.st select[data-v="1"]{background:rgba(250,178,25,.18)}
 <div class="wrap">
   <div class="grid tiles" id="tiles"></div>
   <div class="card mt"><h2>Cách hoạt động</h2>
-    <div class="hint">Mỗi ca là 1 dòng trong Notion (CSDL Case bệnh nhân). Gửi thông tin ca cho Claude, Claude điền phân tích vào Notion, trang này tự cập nhật sau lần đồng bộ kế tiếp (mỗi 30 phút). Vì repo công khai nên trang <b>chỉ hiện mã ca, khoa, tình trạng và ca đã có phân tích chưa</b>. Nội dung lâm sàng xem trong Notion: bấm vào mã ca.</div>
+    <div class="hint">Mỗi ca là 1 dòng trong Notion (CSDL Case bệnh nhân). Gửi thông tin ca cho Claude, Claude điền vào Notion, trang này tự cập nhật sau lần đồng bộ kế tiếp (mỗi 30 phút). Vì repo công khai nên <b>tên bệnh nhân, chẩn đoán và chuyên đề đào sâu được mã hoá</b>: bấm <b>🔓 Mở khoá</b> và nhập mật khẩu (chỉ xử lý trong trình duyệt của bạn, không gửi đi đâu). Nội dung lâm sàng đầy đủ xem trong Notion: bấm vào mã ca.</div>
+    <div class="lockrow"><button class="btn primary" id="unlock">🔓 Mở khoá</button><span class="dim" id="lockmsg"></span></div>
     <div class="dim" style="margin-top:8px">6 ô phân tích: <b>CLS</b> đề nghị cận lâm sàng · <b>ĐT</b> điều trị · <b>?</b> thắc mắc lâm sàng · <b>Nắm</b> kiến thức cần nắm · <b>Sâu</b> kiến thức cần đào sâu · <b>TK</b> tổng kết bài học</div></div>
   <div class="filters mt">
-    <input type="search" id="q" placeholder="Tìm mã ca...">
+    <input type="search" id="q" placeholder="Tìm mã ca, tên, chẩn đoán...">
     <select id="kh"></select>
     <select id="tt"><option value="all">Mọi tình trạng</option><option value="Đang nằm viện">Đang nằm viện</option><option value="Ra viện">Ra viện</option><option value="Chuyển khoa / viện">Chuyển khoa / viện</option><option value="Tử vong">Tử vong</option><option value="none">Chưa ghi tình trạng</option></select>
     <select id="ai"><option value="all">Mọi mức phân tích</option><option value="miss">Còn thiếu phần phân tích</option><option value="full">Đủ 6 phần</option></select>
   </div>
   <p class="count" id="count"></p>
   <div class="tw"><table class="t">
-    <thead><tr><th>Mã ca</th><th>Khoa</th><th>Ngày gặp</th><th>Tình trạng</th><th>Phân tích AI</th><th>Đào sâu</th></tr></thead>
+    <thead><tr><th>Mã ca</th><th>Tên bệnh nhân</th><th>Chẩn đoán</th><th>Khoa</th><th>Ngày gặp</th><th>Tình trạng</th><th>Vấn đề cần đào sâu</th><th>Phân tích AI</th></tr></thead>
     <tbody id="tb"></tbody>
   </table><div class="emptybox hide" id="empty"></div></div>
 </div>
@@ -215,7 +224,19 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return
 function fmt(s){if(!s)return"–";var p=s.split("-");return p[2]+"/"+p[1]+(p[0]!==TODAY.slice(0,4)?"/"+p[0].slice(2):"")}
 function weekStart(d){var p=d.split("-"),dt=new Date(+p[0],+p[1]-1,+p[2]),w=(dt.getDay()+6)%7,m=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()-w);return m.getFullYear()+"-"+pad(m.getMonth()+1)+"-"+pad(m.getDate())}
 /* cột: [mã ca, khoa, ngày gặp, đáng đào sâu 0/1, id trang, tình trạng, cờ 6 phần "110100"] */
-var cases=(D.cases||[]).map(function(r){return{name:r[0],khoa:r[1],date:r[2],deep:r[3],id:r[4],tt:r[5]||"",ai:r[6]||"000000"}});
+var cases=(D.cases||[]).map(function(r){return{name:r[0],khoa:r[1],date:r[2],deep:r[3],id:r[4],tt:r[5]||"",ai:r[6]||"000000",enc:r[7]||"",sec:null}});
+/* ---- giải mã (AES-256-GCM, khoá từ mật khẩu qua PBKDF2-SHA256), chạy hoàn toàn trong trình duyệt ---- */
+var KEY=null;
+function b64(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function deriveKey(pw){var enc=new TextEncoder();return crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveKey"]).then(function(k){return crypto.subtle.deriveKey({name:"PBKDF2",salt:enc.encode(D.salt),iterations:D.iter,hash:"SHA-256"},k,{name:"AES-GCM",length:256},false,["decrypt"])})}
+function dec(key,s){var a=b64(s);return crypto.subtle.decrypt({name:"AES-GCM",iv:a.slice(0,12)},key,a.slice(12)).then(function(pt){return JSON.parse(new TextDecoder().decode(pt))})}
+function tryUnlock(pw){
+  if(!window.crypto||!crypto.subtle)return Promise.reject(new Error("nosubtle"));
+  return deriveKey(pw).then(function(k){
+    var probe=D.verify||(cases.filter(function(c){return c.enc})[0]||{}).enc;
+    if(!probe)return Promise.reject(new Error("nodata"));
+    return dec(k,probe).then(function(){KEY=k;return Promise.all(cases.map(function(c){return c.enc?dec(k,c.enc).then(function(o){c.sec=o},function(){c.sec=null}):null}))})})
+}
 var F={q:"",kh:"all",tt:"all",ai:"all"};
 function cnt(it){return(it.ai.match(/1/g)||[]).length}
 function chips(it){return'<span class="aichips">'+AIL.map(function(l,i){var on=it.ai.charAt(i)==="1";return'<span class="aichip'+(on?" on":"")+'" title="'+esc(l)+(on?": đã có":": chưa có")+'">'+l+'</span>'}).join("")+'</span>'}
@@ -226,14 +247,18 @@ function render(){
   document.getElementById("tiles").innerHTML=tile(cases.length,"Tổng số ca","đã ghi nhận trong Notion")+tile(inp,"Đang nằm viện","cần theo dõi diễn tiến")+tile(full+" / "+cases.length,"Đủ 6 phần phân tích","CLS, điều trị, thắc mắc, nắm, sâu, tổng kết")+tile(deep,"Case đáng đào sâu",wk+" ca mới trong tuần này");
   var q=F.q.trim().toLowerCase();
   var list=cases.filter(function(it){
-    if(q&&it.name.toLowerCase().indexOf(q)<0)return false;
+    if(q&&(it.name+" "+(it.sec?it.sec.n+" "+it.sec.d+" "+it.sec.c.map(function(c){return c[0]}).join(" "):"")).toLowerCase().indexOf(q)<0)return false;
     if(F.kh!=="all"&&it.khoa!==F.kh)return false;
     if(F.tt==="none"){if(it.tt)return false}else if(F.tt!=="all"&&it.tt!==F.tt)return false;
     if(F.ai==="miss"&&cnt(it)===6)return false;if(F.ai==="full"&&cnt(it)!==6)return false;return true})
     .sort(function(a,b){return(a.date||"")<(b.date||"")?1:(a.date||"")>(b.date||"")?-1:0});
   document.getElementById("count").textContent=list.length+" / "+cases.length+" ca";
   document.getElementById("tb").innerHTML=list.map(function(it){
-    return'<tr><td class="nmc"><span class="nm"><a href="https://www.notion.so/'+esc(it.id)+'" target="_blank" rel="noopener">'+esc(it.name)+'</a></span></td><td data-l="Khoa">'+esc(it.khoa||"–")+'</td><td data-l="Ngày gặp">'+fmt(it.date)+'</td><td data-l="Tình trạng">'+flag(it.tt)+'</td><td data-l="Phân tích AI">'+chips(it)+' <span class="dim">'+cnt(it)+'/6</span></td><td data-l="Đào sâu">'+(it.deep?'<span class="flag soon"><i>★</i>Đáng đào sâu</span>':'<span class="dim">–</span>')+'</td></tr>'}).join("");
+    var L='<span class="lock" title="Bấm Mở khoá ở phía trên">🔒</span>',s=it.sec,
+      nm=s?(s.n?esc(s.n):'<span class="dim">–</span>'):L,
+      dx=s?(s.d?'<div class="dx" title="Bấm để xem đầy đủ">'+esc(s.d)+'</div>':'<span class="dim">–</span>'):L,
+      cd=s?(s.c.length?'<div class="cd">'+s.c.map(function(c){return'<a href="https://www.notion.so/'+esc(c[1])+'" target="_blank" rel="noopener">'+esc(c[0])+'</a>'}).join("")+'</div>':'<span class="dim">–</span>'):L;
+    return'<tr><td class="nmc"><span class="nm"><a href="https://www.notion.so/'+esc(it.id)+'" target="_blank" rel="noopener">'+esc(it.name)+'</a></span>'+(it.deep?' <span title="Case đáng đào sâu" style="color:var(--gold)">★</span>':'')+'</td><td data-l="Tên bệnh nhân">'+nm+'</td><td data-l="Chẩn đoán">'+dx+'</td><td data-l="Khoa">'+esc(it.khoa||"–")+'</td><td data-l="Ngày gặp">'+fmt(it.date)+'</td><td data-l="Tình trạng">'+flag(it.tt)+'</td><td data-l="Vấn đề cần đào sâu">'+cd+'</td><td data-l="Phân tích AI">'+chips(it)+' <span class="dim">'+cnt(it)+'/6</span></td></tr>'}).join("");
   var em=document.getElementById("empty");
   if(!cases.length){em.classList.remove("hide");em.innerHTML='Chưa có ca bệnh nào trong Notion.<br>Gửi thông tin bệnh nhân cho Claude (nên dùng <b>mã ca</b>, không ghi họ tên/số hồ sơ), trang sẽ tự cập nhật ở lần đồng bộ kế tiếp.'}else em.classList.add("hide");
 }
@@ -242,6 +267,18 @@ document.getElementById("kh").innerHTML='<option value="all">Mọi khoa</option>
 var g=D.generatedAt?new Date(D.generatedAt):null;
 document.getElementById("sub").textContent=g?"Đồng bộ Notion lần cuối "+pad(g.getHours())+":"+pad(g.getMinutes())+" "+pad(g.getDate())+"-"+pad(g.getMonth()+1)+". Tự kiểm tra Notion mỗi 30 phút.":"";
 document.getElementById("theme").addEventListener("click",function(){var r=document.documentElement,dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme:dark)").matches);r.setAttribute("data-theme",dark?"light":"dark")});
+document.getElementById("tb").addEventListener("click",function(e){var t=e.target;if(t.classList&&t.classList.contains("dx"))t.classList.toggle("open")});
+var hasEnc=cases.some(function(c){return c.enc});
+var ub=document.getElementById("unlock"),um=document.getElementById("lockmsg");
+if(!hasEnc){ub.classList.add("hide");um.textContent="Chưa có dữ liệu mã hoá (cần đặt secret BENH_PHONG_KEY cho repo, xem README)."}
+function done(){ub.textContent="🔒 Khoá lại";um.textContent="Đã mở khoá. Chỉ tồn tại trong tab này.";try{sessionStorage.setItem("bp_pw",PW)}catch(e){}render()}
+var PW="";
+function lockAgain(){KEY=null;PW="";cases.forEach(function(c){c.sec=null});try{sessionStorage.removeItem("bp_pw")}catch(e){}ub.textContent="🔓 Mở khoá";um.textContent="";render()}
+ub.addEventListener("click",function(){
+  if(KEY){lockAgain();return}
+  var pw=window.prompt("Nhập mật khẩu để xem tên bệnh nhân, chẩn đoán, chuyên đề:");if(!pw)return;
+  tryUnlock(pw).then(function(){PW=pw;done()},function(err){um.textContent=err&&err.message==="nosubtle"?"Trình duyệt cần HTTPS để giải mã.":err&&err.message==="nodata"?"Chưa có dữ liệu mã hoá.":"Sai mật khẩu."})});
+try{var sp=sessionStorage.getItem("bp_pw");if(sp&&hasEnc)tryUnlock(sp).then(function(){PW=sp;done()},function(){})}catch(e){}
 render();
 })();
 </script>
