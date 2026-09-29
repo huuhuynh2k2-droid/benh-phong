@@ -24,6 +24,13 @@ export function flagsFromBlocks(blocks) {
 // Các toggle được đưa lên web (mã hoá) để xem trong khung 2 cột: kết quả theo ngày | phân tích AI
 export const VIEW_SECTIONS = ["CLS", "Điều trị", ...SECTIONS];
 const rich = (rt) => (rt || []).map((t) => (t.annotations?.bold && t.plain_text.trim() ? "**" + t.plain_text.trim() + "**" : t.plain_text)).join("").trim();
+// Ô bảng: chuỗi thường, hoặc {x, c} với c = "hi" (chữ đỏ = cao hơn tham chiếu) / "lo" (chữ xanh = thấp hơn)
+const cell = (rt) => {
+  const x = rich(rt);
+  const col = (rt || []).map((t) => t.annotations?.color).find((c) => c && c !== "default") || "";
+  const c = /red|orange|pink/.test(col) ? "hi" : /blue|purple/.test(col) ? "lo" : "";
+  return c ? { x, c } : x;
+};
 // Rút gọn block Notion -> [{k:"p|b|n|h|t", x, d, r, h}] (không kèm định danh nào ngoài nội dung người dùng đã viết)
 export async function simplify(blocks, getChildren, d = 0) {
   const out = [];
@@ -32,7 +39,7 @@ export async function simplify(blocks, getChildren, d = 0) {
     const kids = b.has_children ? await getChildren(b.id) : [];
     if (t === "table") {
       const rows = [];
-      for (const r of kids) rows.push((r.table_row?.cells || []).map((c) => rich(c)));
+      for (const r of kids) rows.push((r.table_row?.cells || []).map(cell));
       out.push({ k: "t", h: !!v.has_column_header, r: rows });
       continue;
     }

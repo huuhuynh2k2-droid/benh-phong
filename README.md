@@ -22,3 +22,8 @@ Thuộc tính chỉ giữ ý chính: Mã ca, Tên bệnh nhân, Khoa, Ngày gặ
 ## Khung xem phân tích
 
 Bấm ô xanh trong cột "Phân tích AI" : CLS và ĐT hiện **kết quả/y lệnh theo ngày ở bên trái, phân tích AI ở bên phải**; các ô còn lại hiện một khung. Nội dung lấy từ toggle heading 1 tương ứng (CLS, Điều trị, 6 phần phân tích). Trong Notion, bảng và gạch đầu dòng trong toggle được hiển thị đúng dạng trên web.
+
+## Màu kết quả CLS và sửa nội dung
+
+- Bảng CLS trong Notion có cột **Tham chiếu**; ô kết quả tô **chữ xanh = thấp hơn tham chiếu, chữ đỏ = cao hơn, chữ đen = bình thường**. Trang web đọc màu chữ của ô trong Notion và hiển thị lại đúng như vậy.
+- Trang web chỉ để xem. Muốn sửa nội dung: bấm **✏️ Sửa trong Notion** trong khung xem (mở đúng trang ca), sửa xong thì trang tự cập nhật ở lần đồng bộ kế tiếp (tối đa 30 phút).

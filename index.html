@@ -14,7 +14,7 @@
   --bg:#f7f8fb;--surface:#ffffff;--ink:#0c1b33;--ink2:#4c5a72;--muted:#8b93a3;
   --grid:#e7ebf2;--axis:#c9d0dc;--border:rgba(12,27,51,.10);
   --s1:#12305e;--s1-soft:#a9c1e4;--wash:rgba(12,27,51,.05);
-  --good:#158a4d;--warn:#b8790a;--crit:#c53434;--accent:#12305e;--accent2:#0b1e3d;--onaccent:#fff;--gold:#c9962c;--gold2:#e8b64a;
+  --good:#158a4d;--warn:#b8790a;--crit:#c53434;--accent:#12305e;--accent2:#0b1e3d;--onaccent:#fff;--gold:#c9962c;--gold2:#e8b64a;--hi:#d21f1f;--lo:#1560d4;
 }
 @media (prefers-color-scheme:dark){
   :root:where(:not([data-theme="light"])){
@@ -22,7 +22,7 @@
     --bg:#070d1a;--surface:#0f1a30;--ink:#eef1f7;--ink2:#aab4c6;--muted:#7c8598;
     --grid:#1c2740;--axis:#26314c;--border:rgba(255,255,255,.10);
     --s1:#5b8ad6;--s1-soft:#27436f;--wash:rgba(255,255,255,.05);
-    --good:#33c27c;--warn:#f0ab3d;--crit:#f07272;--accent:#4d7ec9;--accent2:#7fa6de;--gold:#e8b64a;--gold2:#f4cf7e;
+    --good:#33c27c;--warn:#f0ab3d;--crit:#f07272;--accent:#4d7ec9;--accent2:#7fa6de;--gold:#e8b64a;--gold2:#f4cf7e;--hi:#ff7b7b;--lo:#6ea8ff;
   }
 }
 :root[data-theme="dark"]{
@@ -30,7 +30,7 @@
   --bg:#070d1a;--surface:#0f1a30;--ink:#eef1f7;--ink2:#aab4c6;--muted:#7c8598;
   --grid:#1c2740;--axis:#26314c;--border:rgba(255,255,255,.10);
   --s1:#5b8ad6;--s1-soft:#27436f;--wash:rgba(255,255,255,.05);
-  --good:#33c27c;--warn:#f0ab3d;--crit:#f07272;--accent:#4d7ec9;--accent2:#7fa6de;--gold:#e8b64a;--gold2:#f4cf7e;
+  --good:#33c27c;--warn:#f0ab3d;--crit:#f07272;--accent:#4d7ec9;--accent2:#7fa6de;--gold:#e8b64a;--gold2:#f4cf7e;--hi:#ff7b7b;--lo:#6ea8ff;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -201,6 +201,8 @@ table.rt{border-collapse:collapse;font-size:13.5px;width:100%}
 table.rt td,table.rt th{border:1px solid var(--grid);padding:5px 9px;text-align:left;font-variant-numeric:tabular-nums}
 table.rt th{background:var(--wash);font-weight:700;position:sticky;top:0}
 table.rt td:first-child{font-weight:600;white-space:nowrap}
+table.rt td.hi{color:var(--hi);font-weight:700}
+table.rt td.lo{color:var(--lo);font-weight:700}
 @media (max-width:860px){.sh-body{grid-template-columns:1fr}.pane{max-height:none}}
 .lockrow{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .lock{color:var(--muted)}
@@ -237,7 +239,7 @@ table.rt td:first-child{font-weight:600;white-space:nowrap}
     <tbody id="tb"></tbody>
   </table><div class="emptybox hide" id="empty"></div></div>
 </div>
-<div class="modal hide" id="modal"><div class="sheet" role="dialog" aria-modal="true"><div class="sh-head"><b id="mt"></b><button class="btn sm" id="mclose" type="button">✕ Đóng</button></div><div class="sh-tabs" id="mtabs"></div><div class="sh-body" id="mbody"></div></div></div>
+<div class="modal hide" id="modal"><div class="sheet" role="dialog" aria-modal="true"><div class="sh-head"><b id="mt"></b><span style="display:flex;gap:8px"><a class="btn sm" id="medit" target="_blank" rel="noopener" style="text-decoration:none;color:#fff;display:inline-flex;align-items:center">✏️ Sửa trong Notion</a><button class="btn sm" id="mclose" type="button">✕ Đóng</button></span></div><div class="sh-tabs" id="mtabs"></div><div class="sh-body" id="mbody"></div></div></div>
 <script src="notion-data.js"></script>
 <script>
 (function(){
@@ -262,7 +264,7 @@ function blocksHtml(bl){
   if(!bl||!bl.length)return'<p class="dim">Chưa có nội dung.</p>';
   var h="",cnt={},prev="";
   bl.forEach(function(b){
-    if(b.k==="t"){var r=b.r||[];h+='<div class="rtw"><table class="rt">'+r.map(function(row,ri){var th=b.h&&ri===0;return"<tr>"+row.map(function(c){return(th?"<th>":"<td>")+inl(c)+(th?"</th>":"</td>")}).join("")+"</tr>"}).join("")+"</table></div>";prev="t";return}
+    if(b.k==="t"){var r=b.r||[];h+='<div class="rtw"><table class="rt">'+r.map(function(row,ri){var th=b.h&&ri===0;return"<tr>"+row.map(function(c){var o=c&&typeof c==="object",x=o?c.x:c,k=o&&c.c?' class="'+c.c+'"':"";return(th?"<th>":"<td"+k+">")+inl(x)+(th?"</th>":"</td>")}).join("")+"</tr>"}).join("")+"</table></div>";prev="t";return}
     var d=b.d||0;
     if(b.k==="n"){cnt[d]=(prev==="n"?cnt[d]||0:0)+1;h+='<div class="li" style="margin-left:'+d*16+'px"><i>'+cnt[d]+'.</i><span>'+inl(b.x)+'</span></div>'}
     else if(b.k==="b")h+='<div class="li" style="margin-left:'+d*16+'px"><i>•</i><span>'+inl(b.x)+'</span></div>';
@@ -277,7 +279,7 @@ function openPanel(ci,i){
   CUR={ci:ci,i:i};showPanel()}
 function showPanel(){
   var it=cases[CUR.ci],v=VIEW[CUR.i],S=it.sec.s||{},two=!!v[0],m=document.getElementById("modal");
-  document.getElementById("mt").textContent=it.name;
+  document.getElementById("mt").textContent=it.name;document.getElementById("medit").href="https://www.notion.so/"+it.id;
   document.getElementById("mtabs").innerHTML=AIL.map(function(l,k){var on=it.ai.charAt(k)==="1";return on?'<button type="button" data-k="'+k+'" class="'+(k===CUR.i?"cur":"")+'">'+esc(AIN[k])+'</button>':""}).join("");
   var body=document.getElementById("mbody");body.className="sh-body"+(two?"":" one");
   body.innerHTML=(two?'<div class="pane"><h3>'+esc(v[1])+'</h3>'+blocksHtml(S[v[0]])+'</div>':"")+'<div class="pane"><h3>'+(two?"Phân tích AI":esc(AIN[CUR.i]))+'</h3>'+blocksHtml(S[v[2]])+'</div>';
